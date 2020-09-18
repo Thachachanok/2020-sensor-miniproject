@@ -17,7 +17,6 @@ from pathlib import Path
 import argparse
 import asyncio
 
-
 async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
     """
 
@@ -34,9 +33,10 @@ async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
     log_file: pathlib.Path
         where to store the data received (student must add code for this)
     """
-
-    if log_file:
+    if log_file is not None:
         log_file = Path(log_file).expanduser()
+        file = log_file.open("a")
+    
 
     uri = f"ws://{addr}:{port}"
 
@@ -52,7 +52,11 @@ async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
             if i % 5 == 0:
                 pass
                 # print(f"{i} total messages received")
+            file.write(data + "\n")
             print(data)
+            file.flush()
+
+    file.close()
 
 
 def cli():
@@ -66,13 +70,15 @@ def cli():
         type=int,
         default=100000,
     )
+    p.add_argument("-log_file", help=".", type=Path, default=Path('/home/ece-student/data.txt'))
     P = p.parse_args()
-
+    
     try:
-        asyncio.run(main(P.port, P.host, P.max_packets, P.log))
+        asyncio.run(main(P.port, P.host, P.max_packets, P.log_file))        
+
     except KeyboardInterrupt:
         print(P.log)
-
+        
 
 if __name__ == "__main__":
     cli()
